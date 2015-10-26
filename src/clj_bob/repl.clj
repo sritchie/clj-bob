@@ -33,9 +33,76 @@
               ((1) (cdr-cons p '()))
               (() (atom '()))))
 
+;; and on and on. Very cool. So J-Bob-step lets you define steps
+;; yourself for theorems.
+
+(J-Bob-prove (prelude)
+             '(((defun pair (x y)
+                  (cons x (cons y '())))
+                nil)))
+
+;; Now we do a proof. Give me some definitions we like, then the last
+;; thing is like the arguments to J-Bob-step. This is a proof, now!
+
+(defun prelude+first-of-pair ()
+  (J-Bob-define
+   (prelude)
+   '(((defun pair (x y)
+        (cons x (cons y '())))
+      nil)
+
+     ((defun first-of (x)
+        (car x))
+      nil)
+
+     ((defun second-of (x)
+        (car (cdr x)))
+      nil)
+
+     ((dethm first-of-pair (a b)
+             (equal (first-of (pair a b)) a))
+      nil
+      ((1 1) (pair a b))
+      ((1) (first-of (cons a (cons b '()))))
+      ((1) (car-cons a (cons b '())))
+      (() (equal-same a))))))
+
+;; once we use the above definition to get those saved definitions out
+;; we're good to go again! All we did above was replace J-Bob-prove
+;; with J-Bob-define. Now this makes me feel like I lost all my damned
+;; work earlier in the book, just fucking around manually without
+;; writing out the computer generated proofs :)
+(defun prelude+second-of-pair ()
+  (J-Bob-define
+  (prelude+first-of-pair)
+  '(((dethm second-of-pair (a b)
+            (equal (second-of (pair a b)) b))
+     nil
+     ((1 1) (pair a b))
+     ((1) (second-of (cons a (cons b '()))))
+     ((1 1) (cdr-cons a (cons b '())))
+     ((1) (car-cons b '()))
+     (() (equal-same b))))))
+
+;; next let's try a recursive function.
+(J-Bob-prove
+ (prelude)
+ '(((defun list? (x)
+      (if (atom x)
+        (equal x '())
+        (list? (cdr x))))
+    (size x)
+    ((Q) (natp-size x))
+    (() (if-true
+         (if (atom x) 't (< (size (cdr x)) (size x)))
+         'nil))
+    ((E) (size-cdr x))
+    (() (if-same (atom x) 't)))))
+
+;; Boom.
+
 ;; ## Chapter 3
 
-;; 5
 (defun pair (x y)
   (cons x (cons y '())))
 
